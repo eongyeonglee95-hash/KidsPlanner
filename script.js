@@ -41,6 +41,7 @@ const dialog = document.querySelector("#scheduleDialog");
 const form = document.querySelector("#scheduleForm");
 const currentDate = document.querySelector("#currentDate");
 const currentTime = document.querySelector("#currentTime");
+const boardDateInput = document.querySelector("#boardDateInput");
 const pickupCountdown = document.querySelector("#pickupCountdown");
 const pickupAlert = document.querySelector("#pickupAlert");
 const openAddFormButton = document.querySelector("#openAddForm");
@@ -60,6 +61,8 @@ const academyUrlInput = document.querySelector("#academyUrlInput");
 const dropoffPlaceInput = document.querySelector("#dropoffPlaceInput");
 const memoInput = document.querySelector("#memoInput");
 const submitButton = document.querySelector("#submitButton");
+
+let selectedBoardDateText = getTodayText();
 
 // 저장된 일정이 있으면 불러오고, 없으면 빈 배열로 시작합니다.
 let schedules = getUniqueSchedules(loadSchedulesFromLocalStorage());
@@ -247,15 +250,15 @@ function getDayNameFromDateText(dateText) {
   return ["일", "월", "화", "수", "목", "금", "토"][date.getDay()];
 }
 
-// 현재 날짜가 포함된 주를 기준으로 선택한 요일의 실제 날짜를 구합니다.
+// 선택한 보기 날짜가 포함된 주를 기준으로 요일의 실제 날짜를 구합니다.
 function getDateTextForDay(dayName) {
   const targetDayIndex = days.indexOf(dayName);
-  const today = new Date();
-  const todayDayIndex = today.getDay();
-  const mondayOffset = todayDayIndex === 0 ? 1 : 1 - todayDayIndex;
-  const monday = new Date(today);
+  const baseDate = new Date(`${selectedBoardDateText || getTodayText()}T00:00:00`);
+  const baseDayIndex = baseDate.getDay();
+  const mondayOffset = baseDayIndex === 0 ? 1 : 1 - baseDayIndex;
+  const monday = new Date(baseDate);
 
-  monday.setDate(today.getDate() + mondayOffset);
+  monday.setDate(baseDate.getDate() + mondayOffset);
   monday.setHours(0, 0, 0, 0);
 
   const targetDate = new Date(monday);
@@ -275,6 +278,18 @@ function syncDayInputWithDate() {
 
 // 오늘이 월~토이면 오늘 요일을, 일요일이면 월요일을 기본값으로 사용합니다.
 function getDefaultFormDay() {
+  const selectedDayName = getDayNameFromDateText(selectedBoardDateText);
+  return days.includes(selectedDayName) ? selectedDayName : "월";
+}
+
+// 현재 보드에서 강조할 요일입니다. 선택한 날짜가 월~토가 아니면 오늘 기준으로 봅니다.
+function getFocusedBoardDayName() {
+  const selectedDayName = getDayNameFromDateText(selectedBoardDateText);
+
+  if (days.includes(selectedDayName)) {
+    return selectedDayName;
+  }
+
   const todayDayName = getTodayDayName();
   return days.includes(todayDayName) ? todayDayName : "월";
 }
@@ -571,9 +586,13 @@ function createDayColumn(day) {
   const column = document.createElement("section");
   column.className = `day-column ${getDayColorClass(day)}`;
   column.style.setProperty("--mobile-order", days.indexOf(day) + 1);
-  if (day === getTodayDayName()) {
+  if (day === getFocusedBoardDayName()) {
     column.classList.add("today");
     column.style.setProperty("--mobile-order", 0);
+
+    if (selectedBoardDateText !== getTodayText()) {
+      column.classList.add("selected-date");
+    }
   }
 
   column.innerHTML = `
@@ -613,11 +632,14 @@ function createDayColumn(day) {
             <span class="academy-type-badge"></span>
             <span class="academy-name"></span>
           </div>
-          <div class="card-actions-inline">
-            <button class="copy-button icon-button-small" type="button" aria-label="복사">⧉</button>
-            <button class="edit-button icon-button-small" type="button" aria-label="수정">✎</button>
-            <button class="delete-button icon-button-small" type="button" aria-label="삭제">×</button>
-          </div>
+          <details class="card-menu">
+            <summary aria-label="일정 메뉴">⋯</summary>
+            <div class="card-menu-list">
+              <button class="copy-button menu-button" type="button">복사</button>
+              <button class="edit-button menu-button" type="button">수정</button>
+              <button class="delete-button menu-button" type="button">삭제</button>
+            </div>
+          </details>
         </div>
       </div>
       <div class="schedule-row">
@@ -649,7 +671,7 @@ function createDayColumn(day) {
       managerPhone.href = getPhoneHref(schedule.managerPhone);
       managerPhone.title = `하원도우미 ${schedule.managerPhone}`;
       managerPhone.setAttribute("aria-label", "하원도우미 전화 걸기");
-      managerPhone.innerHTML = `<span class="action-label">하원</span><span class="phone-icon" aria-hidden="true">☎</span>`;
+      managerPhone.innerHTML = `<span class="action-label">하원도우미</span><span class="phone-icon" aria-hidden="true">☎</span>`;
       detail.appendChild(managerPhone);
     }
 
@@ -787,6 +809,11 @@ async function sharePage() {
 }
 
 openAddFormButton.addEventListener("click", () => openForm());
+boardDateInput.value = selectedBoardDateText;
+boardDateInput.addEventListener("change", () => {
+  selectedBoardDateText = boardDateInput.value || getTodayText();
+  renderBoard();
+});
 dayInput.addEventListener("change", () => {
   dateInput.value = getDateTextForDay(dayInput.value);
 });
