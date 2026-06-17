@@ -34,6 +34,7 @@ let firestoreDb = null;
 let firestoreSchedulesCollection = null;
 let firestoreApi = null;
 let isFirestoreReady = false;
+let firestoreStorageReadyPromise = null;
 
 const board = document.querySelector("#scheduleBoard");
 const dialog = document.querySelector("#scheduleDialog");
@@ -121,6 +122,11 @@ function findDuplicateSchedule(scheduleData) {
   return schedules.find((schedule) => getScheduleDuplicateKey(schedule) === duplicateKey);
 }
 
+// 같은 일정은 같은 Firestore 문서 ID를 사용해 중복 문서가 생기지 않게 합니다.
+function getScheduleDocumentId(scheduleData) {
+  return encodeURIComponent(getScheduleDuplicateKey(scheduleData));
+}
+
 // Firestore 문서를 화면에서 사용하는 일정 객체로 바꿉니다.
 function getScheduleFromFirestoreDoc(documentSnapshot) {
   return {
@@ -185,7 +191,7 @@ async function initializeFirestoreStorage() {
 // 기존 LocalStorage 일정을 Firestore로 옮깁니다. 문서 ID는 기존 id를 유지해 중복을 줄입니다.
 async function uploadLocalSchedulesToFirestore() {
   const uploadJobs = schedules.map((schedule, index) => {
-    const documentId = String(schedule.id || `${Date.now()}-${index}`);
+    const documentId = schedule.id ? String(schedule.id) : `${getScheduleDocumentId(schedule)}-${index}`;
     const documentRef = firestoreApi.doc(firestoreDb, firestoreCollectionName, documentId);
 
     return firestoreApi.setDoc(documentRef, getScheduleDataForFirestore({ ...schedule, id: documentId }));
@@ -375,10 +381,12 @@ async function addScheduleToStorage(scheduleData) {
 
   if (isFirestoreReady && firestoreSchedulesCollection && firestoreApi) {
     try {
-      const documentRef = await firestoreApi.addDoc(firestoreSchedulesCollection, getScheduleDataForFirestore(scheduleData));
+      const documentId = getScheduleDocumentId(scheduleData);
+      const documentRef = firestoreApi.doc(firestoreDb, firestoreCollectionName, documentId);
+      await firestoreApi.setDoc(documentRef, getScheduleDataForFirestore(scheduleData));
       const savedSchedule = {
         ...scheduleData,
-        id: documentRef.id,
+        id: documentId,
       };
 
       schedules.push(savedSchedule);
@@ -713,6 +721,10 @@ async function saveScheduleFromForm(event) {
   };
 
   try {
+    if (firestoreStorageReadyPromise) {
+      await firestoreStorageReadyPromise;
+    }
+
     if (editId) {
       await updateScheduleInStorage(scheduleData);
     } else {
@@ -779,4 +791,4 @@ form.addEventListener("submit", saveScheduleFromForm);
 updateHeaderStatus();
 setInterval(updateHeaderStatus, 1000);
 renderBoard();
-initializeFirestoreStorage();
+firestoreStorageReadyPromise = initializeFirestoreStorage();
