@@ -561,8 +561,10 @@ function createDayColumn(day) {
 
   const column = document.createElement("section");
   column.className = `day-column ${getDayColorClass(day)}`;
+  column.style.setProperty("--mobile-order", days.indexOf(day) + 1);
   if (day === getTodayDayName()) {
     column.classList.add("today");
+    column.style.setProperty("--mobile-order", 0);
   }
 
   column.innerHTML = `

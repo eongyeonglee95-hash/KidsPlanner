@@ -199,6 +199,15 @@ button:hover {
   color: var(--today-strong);
 }
 
+.day-column.today .day-title::before {
+  content: "오늘 ";
+}
+
+.day-column.today .schedule-card {
+  border-color: rgba(207, 63, 120, 0.42);
+  box-shadow: 0 14px 30px rgba(207, 63, 120, 0.16);
+}
+
 .day-header {
   display: flex;
   align-items: flex-start;
@@ -516,6 +525,25 @@ button:hover {
   background: rgba(255, 255, 255, 0.68);
 }
 
+.day-column.today .empty-message {
+  border: 2px solid rgba(207, 63, 120, 0.45);
+  color: #7a254b;
+  background: #fff7c8;
+  box-shadow: 0 12px 24px rgba(207, 63, 120, 0.14);
+}
+
+.day-column.today .empty-title {
+  color: #b12f68;
+  font-size: 20px;
+}
+
+.day-column.today .walking-icon {
+  width: 42px;
+  height: 42px;
+  font-size: 21px;
+  background: #cf3f78;
+}
+
 .walking-icon {
   display: inline-flex;
   align-items: center;
@@ -626,12 +654,21 @@ textarea {
   .top-bar {
     align-items: stretch;
     flex-direction: column;
-    padding: 22px;
+    gap: 12px;
+    padding: 18px;
   }
 
   .header-actions {
-    align-items: stretch;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .header-actions .primary-button,
+  .header-actions .secondary-button {
+    min-height: 38px;
+    padding: 0 10px;
+    font-size: 14px;
   }
 
   .pickup-alert {
@@ -650,6 +687,12 @@ textarea {
   }
 
   .day-column {
+    order: var(--mobile-order);
     min-height: auto;
+  }
+
+  .day-column.today {
+    border-width: 3px;
+    box-shadow: 0 0 0 4px rgba(207, 63, 120, 0.18), 0 16px 32px rgba(207, 63, 120, 0.18);
   }
 }
