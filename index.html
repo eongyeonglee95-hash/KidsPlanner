@@ -8,18 +8,20 @@
   </head>
   <body>
     <header class="top-bar">
-      <div>
+      <div class="header-main">
         <p class="eyebrow">Academy Weekly Planner</p>
         <h1>학원 스케줄 관리</h1>
         <div class="current-time-box">
           <span id="currentDate">날짜 확인 중</span>
           <span id="currentTime">시간 확인 중</span>
-          <span class="pickup-countdown" id="pickupCountdown">하원 시간 확인 중</span>
         </div>
       </div>
-      <div class="header-actions">
-        <button class="secondary-button" id="sharePageButton">공유하기</button>
-        <button class="primary-button" id="openAddForm">+ 일정 등록</button>
+      <div class="status-action-row">
+        <span class="pickup-countdown" id="pickupCountdown">하원 시간 확인 중</span>
+        <div class="header-actions">
+          <button class="secondary-button" id="sharePageButton">공유하기</button>
+          <button class="primary-button" id="openAddForm">+ 일정 등록</button>
+        </div>
       </div>
     </header>
 

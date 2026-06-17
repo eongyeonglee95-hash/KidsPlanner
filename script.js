@@ -62,7 +62,7 @@ const memoInput = document.querySelector("#memoInput");
 const submitButton = document.querySelector("#submitButton");
 
 // 저장된 일정이 있으면 불러오고, 없으면 빈 배열로 시작합니다.
-let schedules = loadSchedulesFromLocalStorage();
+let schedules = getUniqueSchedules(loadSchedulesFromLocalStorage());
 
 // Firebase 설정값이 비어 있으면 Firestore 대신 LocalStorage만 사용합니다.
 function hasFirebaseConfig() {
@@ -82,7 +82,14 @@ function loadSchedulesFromLocalStorage() {
 
 // LocalStorage에 일정을 저장합니다. Firestore 연결 실패 시 백업 저장소 역할도 합니다.
 function saveSchedulesToLocalStorage(nextSchedules = schedules) {
-  localStorage.setItem(storageKey, JSON.stringify(nextSchedules));
+  const uniqueSchedules = getUniqueSchedules(nextSchedules);
+  localStorage.setItem(storageKey, JSON.stringify(uniqueSchedules));
+
+  if (nextSchedules === schedules) {
+    schedules = uniqueSchedules;
+  }
+
+  return uniqueSchedules;
 }
 
 // 복사 등록이나 연속 클릭으로 같은 일정이 두 번 보이지 않도록 비교용 값을 만듭니다.
@@ -96,7 +103,9 @@ function getScheduleDuplicateKey(schedule) {
     normalizedSchedule.endTime,
     normalizedSchedule.academyType,
     normalizedSchedule.academy,
-  ].join("|");
+  ]
+    .map((value) => String(value || "").trim().toLowerCase())
+    .join("|");
 }
 
 // 화면에 보여 줄 때 같은 일정은 한 번만 남깁니다.
@@ -119,7 +128,7 @@ function getUniqueSchedules(scheduleList) {
 function findDuplicateSchedule(scheduleData) {
   const duplicateKey = getScheduleDuplicateKey(scheduleData);
 
-  return schedules.find((schedule) => getScheduleDuplicateKey(schedule) === duplicateKey);
+  return getUniqueSchedules(schedules).find((schedule) => getScheduleDuplicateKey(schedule) === duplicateKey);
 }
 
 // 같은 일정은 같은 Firestore 문서 ID를 사용해 중복 문서가 생기지 않게 합니다.
@@ -554,7 +563,7 @@ function getSafeUrl(url) {
 // 요일 칸 하나를 만듭니다.
 function createDayColumn(day) {
   const columnDate = getDateTextForDay(day);
-  const daySchedules = schedules
+  const daySchedules = getUniqueSchedules(schedules)
     .map(normalizeSchedule)
     .filter((schedule) => schedule.day === day && schedule.date === columnDate)
     .sort((first, second) => first.startTime.localeCompare(second.startTime));
@@ -688,6 +697,7 @@ function createDayColumn(day) {
 
 // 전체 칸반보드를 다시 그립니다.
 function renderBoard() {
+  schedules = saveSchedulesToLocalStorage(schedules);
   board.innerHTML = "";
   days.forEach((day) => {
     board.appendChild(createDayColumn(day));

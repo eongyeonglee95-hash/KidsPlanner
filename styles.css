@@ -63,14 +63,26 @@ textarea {
   box-shadow: inset 0 0 0 1px rgba(217, 231, 227, 0.8);
 }
 
-.current-time-box .pickup-countdown {
+.status-action-row {
+  display: grid;
+  gap: 10px;
+  justify-items: end;
+}
+
+.pickup-countdown {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 9px 13px;
+  border-radius: 8px;
   color: #6d3d00;
   font-size: 17px;
+  font-weight: 800;
   background: #ffe8a8;
   box-shadow: inset 0 0 0 1px rgba(224, 174, 48, 0.32), 0 8px 18px rgba(186, 125, 20, 0.12);
 }
 
-.current-time-box .pickup-countdown.warning {
+.pickup-countdown.warning {
   color: #8f250f;
   font-size: 19px;
   background: #ffd6c9;
@@ -654,21 +666,40 @@ textarea {
   .top-bar {
     align-items: stretch;
     flex-direction: column;
-    gap: 12px;
+    gap: 10px;
     padding: 18px;
+  }
+
+  .status-action-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .pickup-countdown {
+    width: 100%;
+    min-height: 36px;
+    padding: 7px 9px;
+    font-size: 13px;
+    line-height: 1.25;
+  }
+
+  .pickup-countdown.warning {
+    font-size: 14px;
   }
 
   .header-actions {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
+    grid-template-columns: auto auto;
+    gap: 6px;
   }
 
   .header-actions .primary-button,
   .header-actions .secondary-button {
-    min-height: 38px;
-    padding: 0 10px;
-    font-size: 14px;
+    min-height: 34px;
+    padding: 0 8px;
+    font-size: 12px;
+    white-space: nowrap;
   }
 
   .pickup-alert {
